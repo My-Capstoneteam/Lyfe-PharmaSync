@@ -208,21 +208,41 @@
         break;
 
         case 'fetch_history':
-            $stmt = $pdo->prepare("SELECT a.timestamp, u.first_name, u.last_name, a.action_type, a.description 
-                                   FROM audit_logs a JOIN users u ON a.user_id = u.user_id 
-                                   ORDER BY a.timestamp DESC LIMIT 50");
-            $stmt->execute();
-            
-            $formattedLogs = [];
-            foreach($stmt->fetchAll() as $log) {
-                $formattedLogs[] = [
-                    'time' => date('M d, Y h:i A', strtotime($log['timestamp'])),
-                    'user' => $log['first_name'] . ' ' . $log['last_name'],
-                    'action' => $log['action_type'],
-                    'desc' => $log['description']
-                ];
+            if (!isset($_SESSION['user_id'])) {
+                echo json_encode(["success" => false, "message" => "Unauthorized session."]); 
+                exit;
             }
-            echo json_encode(["success" => true, "logs" => $formattedLogs]);
+
+            try {
+                // Fetch the 100 most recent audit logs and join with the users table to get the full name
+                $sql = "SELECT 
+                            a.action_type, 
+                            a.description, 
+                            a.timestamp, 
+                            CONCAT(u.first_name, ' ', u.last_name) AS user_name
+                        FROM audit_logs a
+                        JOIN users u ON a.user_id = u.user_id
+                        ORDER BY a.timestamp DESC 
+                        LIMIT 100";
+                
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute();
+                $logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                $formattedLogs = [];
+                foreach($logs as $row) {
+                    $formattedLogs[] = [
+                        'time' => date('M d, Y h:i A', strtotime($row['timestamp'])),
+                        'user' => $row['user_name'],
+                        'action' => $row['action_type'],
+                        'desc' => $row['description']
+                    ];
+                }
+
+                echo json_encode(["success" => true, "logs" => $formattedLogs]);
+            } catch(PDOException $e) {
+                echo json_encode(["success" => false, "message" => $e->getMessage()]);
+            }
         break;
 
         case 'import_csv':

@@ -222,7 +222,7 @@
             <button class="nav-btn module-link" data-target="smart-pricing" data-roles="Employee" onclick="switchModule('smart-pricing')">📉 Smart Pricing</button>
             
             <button class="nav-btn module-link" data-target="sales-predictive" data-roles="Owner" onclick="switchModule('sales-predictive')">📈 Sales & Predictive Analytics</button>
-            <button class="nav-btn module-link" data-target="users" data-roles="Owner,Employee" onclick="switchModule('users')">👥 Users Module</button>
+            <button class="nav-btn module-link" data-target="users" data-roles="Owner,Employee" onclick="switchModule('users')">👥 User Management</button>
         </div>
         <button class="nav-btn" style="margin-top: auto; border-top: 1px solid #333; padding-top: 20px;" onclick="handleLogout()">🚪 Secure Log Out</button>
     </div>
@@ -336,26 +336,71 @@
                 </div>
 
             </div>
-            
+
             <!-- DASHBOARD MODULE UI, FUNCTION, AND STRUCTURE -->
             <div id="dashboard" class="module active">
                 <h2 class="header-title">Live System Dashboard</h2>
+                
+                <!-- Upgraded Metric Cards with Icons -->
                 <div class="grid-cards">
-                    <div class="card" style="border-top-color: var(--secondary);">
-                        <h3>Gross Revenue (Today)</h3><h2 id="dash-sales">₱ 0.00</h2>
+                    <div class="card" style="border-top-color: var(--secondary); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 style="color: #666; font-size: 0.9rem;">Gross Revenue (Today)</h3>
+                            <h2 id="dash-sales" style="margin-top: 5px; color: var(--dark);">₱ 0.00</h2>
+                        </div>
+                        <i class="fa-solid fa-coins" style="font-size: 2rem; color: var(--secondary); opacity: 0.2;"></i>
                     </div>
-                    <div class="card">
-                        <h3>Active Inventory SKUs</h3><h2 id="dash-stock">0</h2>
+                    <div class="card" style="border-top-color: var(--primary); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 style="color: #666; font-size: 0.9rem;">Active Inventory SKUs</h3>
+                            <h2 id="dash-stock" style="margin-top: 5px; color: var(--dark);">0</h2>
+                        </div>
+                        <i class="fa-solid fa-boxes-stacked" style="font-size: 2rem; color: var(--primary); opacity: 0.2;"></i>
                     </div>
-                    <div class="card" style="border-top-color: var(--danger);">
-                        <h3>Pending Expiry/Alerts</h3><h2 id="dash-alerts-count">0</h2>
+                    <div class="card" style="border-top-color: var(--danger); display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h3 style="color: #666; font-size: 0.9rem;">Pending Expiry/Alerts</h3>
+                            <h2 id="dash-alerts-count" style="margin-top: 5px; color: var(--dark);">0</h2>
+                        </div>
+                        <i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem; color: var(--danger); opacity: 0.2;"></i>
                     </div>
                 </div>
                 
-                <div class="chart-container">
-                    <h3 style="color: var(--dark); margin-bottom: 15px;">Revenue Trendline</h3>
-                    <div style="position: relative; height: 300px; width: 100%;">
-                        <canvas id="revenueChart"></canvas>
+                <!-- Side-by-Side Layout for Chart and Table -->
+                <div style="display: flex; flex-direction: column; gap: 25px; margin-top: 25px;">
+                    
+                    <!-- Full-Width Chart Column -->
+                    <div class="chart-container" style="margin-top: 0; width: 100%;">
+                        <h3 style="color: var(--dark); margin-bottom: 15px;">Revenue Trendline</h3>
+                        <div style="position: relative; height: 350px; width: 100%;">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Full-Width Transactions Table Column -->
+                    <div class="chart-container" style="margin-top: 0; width: 100%;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                            <h3 style="color: var(--dark); margin: 0;">Recent Transactions Log</h3>
+                            <button class="btn btn-outline" style="padding: 4px 10px; font-size: 0.75rem;" onclick="switchModule('sales-reports')">View All</button>
+                        </div>
+                        
+                        <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 6px;">
+                            <table style="margin-top: 0; min-width: 900px;">
+                                <thead style="background: #f8f9fa;">
+                                    <tr>
+                                        <th>Transaction ID</th>
+                                        <th>Items Summary</th>
+                                        <th>Total Qty</th>
+                                        <th>Total Amount</th>
+                                        <th>Timestamp</th>
+                                        <th>Cashier</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-sales-reports-tbody">
+                                    <tr><td colspan="6" style="text-align:center; color:#888;">No transactions processed yet.</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -657,17 +702,32 @@
                     </table>
                 </div>
 
-                <div class="chart-container" style="margin-top: 25px;">
-                    <h3 style="color: var(--dark); margin-bottom: 15px;">Recent Sales Transactions Log</h3>
-                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Real-time ledger of point-of-sale transactions processed by staff.</p>
-                    <table>
-                        <thead>
-                            <tr><th>Transaction ID</th><th>Items Summary</th><th>Total Qty</th><th>Total Amount</th><th>Timestamp</th><th>Cashier</th></tr>
-                        </thead>
-                        <tbody id="admin-sales-reports-tbody">
-                            <tr><td colspan="6" style="text-align:center; color:#888;">No transactions processed yet.</td></tr>
-                        </tbody>
-                    </table>
+                <div class="chart-container" style="margin-top: 35px; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <div>
+                            <h3 style="color: var(--dark); margin: 0;">Recent Sales Transactions Log</h3>
+                            <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">Real-time ledger of point-of-sale transactions processed by staff.</p>
+                        </div>
+                    </div>
+                    
+                    <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 6px;">
+                        <table style="margin-top: 0; min-width: 900px;">
+                            <thead style="background: #f8f9fa;">
+                                <tr>
+                                    <th>Transaction ID</th>
+                                    <th>Items Summary</th>
+                                    <th>Total Qty</th>
+                                    <th>Total Amount</th>
+                                    <th>Timestamp</th>
+                                    <th>Cashier</th>
+                                </tr>
+                            </thead>
+                            <!-- Notice the new unique ID here! -->
+                            <tbody id="predictive-sales-tbody">
+                                <tr><td colspan="6" style="text-align:center; color:#888;">No transactions processed yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

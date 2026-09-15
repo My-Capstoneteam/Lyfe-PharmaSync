@@ -65,7 +65,8 @@ window.onload = async function() {
             
             startHeartbeat(); 
             await fetchInventoryList();
-            await fetchSalesHistory();
+            await fetchSalesHistory(); 
+            
             switchModule('dashboard');
             initCharts();
         }
@@ -231,7 +232,8 @@ async function handleLogin(event) {
     }
     
     await fetchInventoryList();
-    await fetchSalesHistory();
+    await fetchSalesHistory(); 
+            
     switchModule('dashboard');
     initCharts();
     renderSmsSettings(); 
@@ -1868,7 +1870,43 @@ function refreshUI() {
         document.getElementById('sales-reports-tbody').innerHTML = salesHtml;
     }
     if(document.getElementById('admin-sales-reports-tbody')) {
-        document.getElementById('admin-sales-reports-tbody').innerHTML = salesHtml;
+        let dashSalesHtml = `<tr><td colspan="6" style="text-align:center; color:#888;">No transactions processed yet.</td></tr>`;
+        
+        if (salesHistory.length > 0) {
+            // Slices to only show the 10 most recent transactions on the dashboard
+            dashSalesHtml = salesHistory.slice(0, 10).map(log => `
+                <tr>
+                    <td><strong>${log.txn}</strong></td>
+                    <td style="font-size:0.85rem; max-width:250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${log.items}">${log.items}</td>
+                    <td>${log.qty} items</td>
+                    <td style="font-weight:bold; color:var(--primary);">₱${log.total.toFixed(2)}</td>
+                    <td style="font-size: 0.85rem;">${log.time}</td>
+                    <td style="font-size: 0.85rem;">${log.cashier}</td>
+                </tr>
+            `).join('');
+        }
+        document.getElementById('admin-sales-reports-tbody').innerHTML = dashSalesHtml;
     }
+
+    if(document.getElementById('predictive-sales-tbody')) {
+        let predictiveSalesHtml = `<tr><td colspan="6" style="text-align:center; color:#888;">No transactions processed yet.</td></tr>`;
+        
+        if (salesHistory.length > 0) {
+            // This maps ALL history, not just the slice of 10 we used for the dashboard
+            predictiveSalesHtml = salesHistory.map(log => `
+                <tr>
+                    <td><strong>${log.txn}</strong></td>
+                    <td style="font-size:0.85rem; max-width:250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${log.items}">${log.items}</td>
+                    <td>${log.qty} items</td>
+                    <td style="font-weight:bold; color:var(--primary);">₱${log.total.toFixed(2)}</td>
+                    <td style="font-size: 0.85rem;">${log.time}</td>
+                    <td style="font-size: 0.85rem;">${log.cashier}</td>
+                </tr>
+            `).join('');
+        }
+        document.getElementById('predictive-sales-tbody').innerHTML = predictiveSalesHtml;
+    }
+
+    // NEW: Fire the SMS simulation silently in the background
     simulateSmsDispatch();
 }
