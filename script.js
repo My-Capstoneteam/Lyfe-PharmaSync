@@ -13,14 +13,18 @@ let originalProfileData = {};
 let currentUserPhone = "";
 let currentUserSmsEnabled = true;
 
-let dispatchedSmsAlerts = new Set();
+let dispatchedSmsAlerts = JSON.parse(localStorage.getItem('pharma_dispatched')) || [];
+let dismissedAlerts = JSON.parse(localStorage.getItem('pharma_dismissed')) || [];
+let financialHealthChartInstance = null;
+let demandChartInst = null;
+let velocityChartInst = null;
+let reorderChartInst = null;
 
 // Dummy variables to prevent UI crash during testing
 let db = [];
 let cart = [];
 let salesHistory = [];
 let inventoryHistory = [];
-let dismissedAlerts = [];
 let totalRevenue = 0;
 let revenueChartInst = null;
 let financialHealthChartInst = null;
@@ -147,6 +151,14 @@ function switchModule(modId) {
     if(modId === 'expiry-alerts') {
         renderSmsSettings();
     }
+
+    if(modId === 'sales-predictive') {
+        loadAiAnalytics();
+    }
+
+    if(modId === 'ai-demand') {
+        loadAiDemand();
+    }
 }
 
 //   =============== WORKING FINE ===========
@@ -203,7 +215,7 @@ async function handleLogin(event) {
 
         // lalagyan ng design feel ko pag nirun to pure text lang hehe
         if (!data.success){
-            return alert("Access Denied: " + data.message);
+            return showToast("Access Denied: " + data.message, "error");
         }
 
         currentUserRole = data.user.role;
@@ -226,9 +238,10 @@ async function handleLogin(event) {
         document.getElementById('app-sidebar').style.display = 'flex';
         document.getElementById('app-content').style.display = 'flex';
 
+        showToast(`Welcome back, ${currentUserName}!`, "success");
     } catch (error) {
         console.error("System error: ", error);
-        alert("A connection error occurred with the server. Please ensure the database hosting is up.")
+        showToast("A connection error occurred with the server. Please ensure the database hosting is up.", "error")
     }
     
     await fetchInventoryList();
@@ -1235,7 +1248,11 @@ async function toggleSmsAlerts() {
 
 //   =============== WORKING FINE ===========
 function dismissAlert(alertId) {
-    dismissedAlerts.push(alertId);
+    if (!dismissedAlerts.includes(alertId)) {
+        dismissedAlerts.push(alertId);
+        // Save the updated list permanently to the browser
+        localStorage.setItem('pharma_dismissed', JSON.stringify(dismissedAlerts));
+    }
     refreshUI();
 }
 
@@ -1243,6 +1260,8 @@ function dismissAlert(alertId) {
 function simulateSmsDispatch() {
     // Abort if alerts are disabled or no phone number is registered
     if (!currentUserSmsEnabled || !currentUserPhone) return;
+
+    let newlyDispatched = false;
 
     db.forEach(item => {
         let message = "";
@@ -1257,15 +1276,22 @@ function simulateSmsDispatch() {
             alertKey = `expiry_${item.batch}`;
         }
 
-        // Fire the alert only if it exists, hasn't been sent yet this session, and hasn't been manually dismissed
-        if (message !== "" && !dispatchedSmsAlerts.has(alertKey) && !dismissedAlerts.includes(item.batch)) {
+        // Check if the alert exists, hasn't been sent ever, and hasn't been manually dismissed
+        if (message !== "" && !dispatchedSmsAlerts.includes(alertKey) && !dismissedAlerts.includes(item.batch)) {
             
-            // Prints a highly visible blue SMS pill in the F12 Developer Console
+            // This is where your actual SMS API fetch() call will go later!
             console.log(`%c[SMS SENT TO ${currentUserPhone}]`, 'color: #fff; background: #2563eb; padding: 2px 6px; border-radius: 4px; font-weight: bold;', message);
             
-            dispatchedSmsAlerts.add(alertKey);
+            // Add to our persistent tracking array
+            dispatchedSmsAlerts.push(alertKey);
+            newlyDispatched = true;
         }
     });
+
+    // If we sent any new messages, save the updated tracking list to localStorage
+    if (newlyDispatched) {
+        localStorage.setItem('pharma_dispatched', JSON.stringify(dispatchedSmsAlerts));
+    }
 }
 
 
@@ -1327,7 +1353,7 @@ function addToCart(id) {
     let currentInCartQty = existingInCart ? existingInCart.qty : 0;
 
     if (currentInCartQty >= item.stock) {
-        return alert(`Cannot add more. Only ${item.stock} unit(s) available in stock for this batch.`);
+        return showToast(`Cannot add more. Only ${item.stock} unit(s) available in stock for this batch.`, "warning");
     }
 
     if (existingInCart) {
@@ -1375,7 +1401,7 @@ function updateCartQty(index, value) {
     }
 
     if (parsed > cartItem.maxStock) {
-        alert(`Stock limit reached. Quantity adjusted to available stock (${cartItem.maxStock}).`);
+        showToast(`Stock limit reached. Quantity adjusted to available stock (${cartItem.maxStock}).`, "warning");
         cartItem.qty = cartItem.maxStock;
     } else {
         cartItem.qty = parsed;
@@ -1389,7 +1415,7 @@ function removeFromCart(index) {
 }
 
 function processCheckout() {
-    if (cart.length === 0) return alert("Terminal basket is empty.");
+    if (cart.length === 0) return showToast("Terminal basket is empty.", "warning");
 
     // Checks real database drug_type
     let requiresRx = cart.some(item => item.drug_type === 'Rx');
@@ -1473,11 +1499,12 @@ async function finalizeCheckout(rxDetails) {
                 financialHealthChartInst.update();
             }
             
+            showToast("Transaction processed successfully!", "success");
         } else {
-            alert("Checkout Failed: " + json.message);
+            showToast("Checkout Failed: " + json.message, "error");
         }
     } catch (err) {
-        alert("A connection error occurred during checkout. Please verify the server is running.");
+        showToast("A connection error occurred during checkout. Please verify the server is running.", "error");
     }
 }
 
@@ -1488,7 +1515,7 @@ function validatePrescriptionAndCheckout() {
     let ptr = document.getElementById('rx-ptr').value.trim();
 
     if (!customer || !license || !ptr) {
-        return alert("Validation Failed: Please fill in all prescription details (Patient Name, License No., and PTR No.) to proceed.");
+        return showToast("Validation Failed: Please fill in all prescription details (Patient Name, License No., and PTR No.) to proceed.", "warning");
     }
 
     closeModal('prescription-modal');
@@ -1569,11 +1596,235 @@ function executeCSVExport(scope) {
 }
 
 
+// =========================================================
+// ==== SALES AND PREDICTIVE ANALYTICS MODULE FUNCTIONS ====
+// =========================================================
 
+async function loadAiAnalytics(forceRefresh = false) {
+    const btn = document.getElementById('btn-refresh-ai');
+    
+    try {
+        // If the user clicked the button, show a loading spinner and disable the button
+        if (forceRefresh && btn) {
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Generating...';
+            btn.disabled = true;
+        }
 
+        // If forceRefresh is true, append ?refresh=true to tell PHP to bypass the cache
+        const fetchUrl = forceRefresh ? 'aiconfiguration.php?refresh=true' : 'aiconfiguration.php';
+        const res = await fetch(fetchUrl);
+        
+        // Catch raw PHP errors before trying to parse JSON
+        const rawText = await res.text();
+        let data;
+        try {
+            data = JSON.parse(rawText);
+        } catch (e) {
+            console.error("Server output is not valid JSON:", rawText);
+            if (forceRefresh) alert("Failed to communicate with AI API. Check F12 console.");
+            return;
+        }
 
+        if (data.success && data.analytics) {
+            const ai = data.analytics;
 
+            // 1. Populate Metric Cards
+            if (document.getElementById('ai-mom-growth')) document.getElementById('ai-mom-growth').innerText = ai.mom_growth;
+            if (document.getElementById('ai-operating-margin')) document.getElementById('ai-operating-margin').innerText = ai.operating_margin;
+            if (document.getElementById('ai-predicted-eom')) document.getElementById('ai-predicted-eom').innerText = '₱ ' + Number(ai.predicted_eom).toLocaleString();
+            if (document.getElementById('ai-top-category')) document.getElementById('ai-top-category').innerText = ai.top_category;
 
+            // 2. Render Financial Health Chart (Revenue vs Restock Needs)
+            const ctx = document.getElementById('financialHealthChart');
+            if (ctx && ai.financial_chart) {
+                // FIXED: Safely destroy any active Chart.js instance attached to this canvas
+                const existingChart = Chart.getChart(ctx);
+                if (existingChart) {
+                    existingChart.destroy();
+                }
+
+                financialHealthChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ai.financial_chart.months,
+                        datasets: [
+                            {
+                                label: 'Gross Revenue (₱)',
+                                data: ai.financial_chart.revenue,
+                                borderColor: '#2b6cb0',
+                                backgroundColor: 'rgba(43, 108, 176, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            },
+                            {
+                                label: 'Predicted Inventory Restock Needs (₱)',
+                                data: ai.financial_chart.restock_needs,
+                                borderColor: '#e67e22',
+                                backgroundColor: 'rgba(230, 126, 34, 0.1)',
+                                tension: 0.3,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) { return '₱' + Number(value).toLocaleString(); }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 3. Render Procurement Forecast Table
+            const tbody = document.getElementById('ai-procurement-tbody');
+            if (tbody && ai.procurement_forecast) {
+                tbody.innerHTML = ai.procurement_forecast.map(row => {
+                    let badgeStyle = "background:#d4edda; color:#155724;"; 
+                    if (row.status_badge.includes('CRITICAL')) badgeStyle = "background:#f8d7da; color:#721c24; font-weight:bold;";
+                    else if (row.status_badge.includes('MONITOR')) badgeStyle = "background:#fff3cd; color:#856404; font-weight:bold;";
+
+                    return `
+                        <tr>
+                            <td style="font-weight:500;">${row.target_date}</td>
+                            <td><strong>${row.product_category}</strong></td>
+                            <td><span style="display:inline-block; padding:3px 8px; border-radius:12px; font-size:0.75rem; ${badgeStyle}">${row.status_badge}</span></td>
+                            <td style="font-weight:600; color:var(--dark);">₱ ${Number(row.estimated_budget).toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                            <td style="color:var(--secondary); font-weight:bold;">${row.demand_surge}</td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+
+            if (forceRefresh) {
+                showToast("AI Forecast successfully generated! The 6-hour countdown has been reset.", "success");
+            }
+        } else if (forceRefresh) {
+            showToast("API Error: " + (data.message || "Could not generate forecast."), "error");
+        }
+    } catch (err) {
+        console.error("AI Analytics load failed:", err);
+    } finally {
+        // Always reset the button back to normal when finished
+        if (forceRefresh && btn) {
+            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Refresh AI Forecast';
+            btn.disabled = false;
+        }
+    }
+}
+// =========================================================
+// ==== AI DEMAND ANALYSIS MODULE FUNCTIONS ================
+// =========================================================
+
+async function loadAiDemand() {
+    try {
+        const res = await fetch('aiconfiguration.php?module=demand');
+        const data = await res.json();
+
+        if (data.success && data.demand) {
+            const ai = data.demand;
+
+            // 1. Populate Cards Automatically
+            for (let i = 1; i <= 3; i++) {
+                const insightData = ai[`insight_${i}`];
+                if (insightData && document.getElementById(`demand-insight-${i}`)) {
+                    document.getElementById(`demand-insight-${i}`).innerText = insightData.insight;
+                    document.getElementById(`demand-action-${i}`).innerText = insightData.action;
+                    
+                    const linkElement = document.getElementById(`demand-link-${i}`);
+                    if (linkElement) {
+                        // If the AI provided a link URL, show it. Otherwise, completely hide it!
+                        if (insightData.link_url) {
+                            linkElement.innerText = `🔗 ${insightData.link_text} →`;
+                            linkElement.href = insightData.link_url;
+                            linkElement.style.display = 'block'; 
+                        } else {
+                            linkElement.style.display = 'none'; 
+                        }
+                    }
+                }
+            }
+
+            // 2. Category Demand Projection (Bar Chart)
+            const dCtx = document.getElementById('demandChart');
+            if (dCtx && ai.demand_chart) {
+                const existingChart = Chart.getChart(dCtx);
+                if (existingChart) { existingChart.destroy(); }
+
+                demandChartInst = new Chart(dCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ai.demand_chart.categories,
+                        datasets: [
+                            { label: 'Units Sold (Actual)', data: ai.demand_chart.units_sold, backgroundColor: '#0056b3', borderRadius: 4 }, 
+                            { label: 'Projected Demand (Units)', data: ai.demand_chart.projected_demand, backgroundColor: '#20c997', borderRadius: 4 }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false, 
+                        plugins: {
+                            legend: { display: true, position: 'top'},
+                            tooltip: { callbacks: { label: function(context) { return `${context.dataset.label}: ${context.raw} units`;} } }
+                        }, scales: {
+                            y: { beginAtZero: true, ticks: { precision: 0 } }
+                        }
+                    }
+                });
+            }
+
+            // 3. 7-Day Velocity Trend (Line Chart)
+            const vCtx = document.getElementById('velocityChart');
+            if (vCtx && ai.velocity_chart) {
+                const existingChart = Chart.getChart(vCtx);
+                if (existingChart) existingChart.destroy();
+                
+                velocityChartInst = new Chart(vCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ai.velocity_chart.days,
+                        datasets: ai.velocity_chart.datasets // Injects all DB categories directly!
+                    },
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top' },
+                            tooltip: { mode: 'index', intersect: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, ticks: { precision: 0 } }
+                        }
+                    }
+                });
+            }
+
+            // 4. Automated Reorder Probability (Doughnut Chart)
+            const rCtx = document.getElementById('reorderChart');
+            if (rCtx && ai.reorder_chart) {
+                if (reorderChartInst) reorderChartInst.destroy();
+                reorderChartInst = new Chart(rCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Urgent Reorder', 'Monitor Stock', 'Healthy Inventory'],
+                        datasets: [{
+                            data: [ai.reorder_chart.urgent, ai.reorder_chart.monitor, ai.reorder_chart.healthy],
+                            backgroundColor: ['#dc3545', '#ffc107', '#20c997']
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
+                });
+            }
+        }
+    } catch (err) {
+        console.error("AI Demand load failed:", err);
+    }
+}
 
 
 
@@ -1720,8 +1971,42 @@ function initCharts() {
 // ====== GLOBAL UI & DYNAMIC REFRESH ======
 // =========================================
 
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    // Assign proper FontAwesome icons based on the type
+    let icon = 'fa-circle-info';
+    if (type === 'success') icon = 'fa-circle-check';
+    if (type === 'error') icon = 'fa-triangle-exclamation';
+
+    toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+    
+    container.appendChild(toast);
+
+    // Auto-remove the element from the DOM after the 4-second animation finishes
+    setTimeout(() => {
+        toast.remove();
+    }, 4000);
+}
+
 function refreshUI() {
-    document.getElementById('dash-sales').innerText = `₱ ${totalRevenue.toFixed(2)}`;
+    const now = new Date();
+    const todayString = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    
+    let realDailyRevenue = 0;
+    salesHistory.forEach(sale => {
+        // Checks if the transaction's raw database timestamp matches today's date
+        if (sale.raw_date && sale.raw_date.startsWith(todayString)) {
+            realDailyRevenue += sale.total;
+        }
+    });
+
+    // Update the metric cards with real data
+    document.getElementById('dash-sales').innerText = `₱ ${realDailyRevenue.toFixed(2)}`;
     document.getElementById('dash-stock').innerText = db.length;
 
     let alertCount = 0;
@@ -1832,7 +2117,7 @@ function refreshUI() {
             <p style="margin-top: 15px; font-size: 0.95rem; line-height: 1.6; color: #555;"><strong>Flagged SKU:</strong> ${item.name} (${item.batch})<br><strong>Status:</strong> Impending expiration on ${item.expiry}.</p>
             
             <div style="background: #e8f4f8; border-left: 4px solid #17a2b8; padding: 12px; border-radius: 4px; margin-top: 15px;">
-                <strong style="color: #0c5460; font-size: 0.9rem;">🤖 AI Analysis:</strong>
+                <strong style="color: #0c5460; font-size: 0.9rem;">Discount Suggestion:</strong>
                 <p style="font-size: 0.85rem; color: #0c5460; margin-top: 5px; line-height: 1.4;">Remaining shelf life is <strong>${diffDays} days</strong> with <strong>${item.stock} units</strong> in stock. To optimize sell-through rate before expiration, the system suggests a <strong>${suggestedDiscount}% discount</strong>.</p>
                 <button class="btn btn-outline" style="margin-top: 8px; padding: 4px 10px; font-size: 0.8rem; border-color: #17a2b8; color: #17a2b8;" onclick="document.getElementById('discount-slider-${item.id}').value = ${suggestedDiscount}; updatePricePreview(${item.id}, ${item.price});">Apply ${suggestedDiscount}% Suggestion</button>
             </div>

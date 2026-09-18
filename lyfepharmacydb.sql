@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 06, 2026 at 02:01 PM
+-- Generation Time: Sep 18, 2026 at 06:40 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -57,7 +57,28 @@ INSERT INTO `audit_logs` (`log_id`, `user_id`, `action_type`, `description`, `ti
 (15, 2, 'Delete', 'Permanently deleted Batch: B-103.', '2026-09-04 18:41:04'),
 (16, 2, 'Smart Pricing', 'Mitigation applied: Reduced price of Sample 2 (Batch: b-123) from ₱22 to ₱18.7.', '2026-09-04 18:46:27'),
 (17, 2, 'Smart Pricing', 'Mitigation applied: Reduced price of Sample 2 (Batch: b-123) from ₱18.7 to ₱6.73.', '2026-09-04 18:47:19'),
-(18, 2, 'Smart Pricing', 'Mitigation applied: Reduced price of Sample 1 (Batch: 12345) from ₱42 to ₱21.', '2026-09-04 18:48:59');
+(18, 2, 'Smart Pricing', 'Mitigation applied: Reduced price of Sample 1 (Batch: 12345) from ₱42 to ₱21.', '2026-09-04 18:48:59'),
+(19, 1, 'Delete', 'Permanently deleted Batch: 12345.', '2026-09-15 22:34:14'),
+(20, 1, 'Bulk Import', 'CSV Import processed. New items: 8. Existing batches updated: 0.', '2026-09-15 22:51:25'),
+(21, 1, 'Delete', 'Permanently deleted Batch: TXN-000008.', '2026-09-15 23:03:42'),
+(22, 1, 'Delete', 'Permanently deleted Batch: TXN-000007.', '2026-09-15 23:03:45'),
+(23, 1, 'Delete', 'Permanently deleted Batch: TXN-000006.', '2026-09-15 23:03:47'),
+(24, 1, 'Delete', 'Permanently deleted Batch: TXN-000005.', '2026-09-15 23:03:50'),
+(25, 1, 'Delete', 'Permanently deleted Batch: TXN-000001.', '2026-09-15 23:03:52'),
+(26, 1, 'Delete', 'Permanently deleted Batch: TXN-000002.', '2026-09-15 23:03:54'),
+(27, 1, 'Delete', 'Permanently deleted Batch: TXN-000003.', '2026-09-15 23:03:57'),
+(28, 1, 'Delete', 'Permanently deleted Batch: TXN-000004.', '2026-09-15 23:03:59'),
+(29, 2, 'POS Sale', 'Stock deducted for TXN-000001. Items: Sample 2 (Generic) (x6).', '2026-09-16 02:00:31'),
+(30, 2, 'POS Sale', 'Stock deducted for TXN-000002. Items: Paracetamol (Biogesic) (x1), Paracetamol (Biogesic) (x1), Amoxicillin 500mg Cap (Generic) (x3).', '2026-09-16 23:37:27'),
+(31, 2, 'POS Sale', 'Stock deducted for TXN-000003. Items: Salbutamol 2mg Tab (Generic) (x7), Ibuprofen 400mg Tab (Generic) (x2), Paracetamol (Biogesic) (x2).', '2026-09-16 23:37:31'),
+(32, 2, 'POS Sale', 'Stock deducted for TXN-000004. Items: Paracetamol 500mg Tab (Generic) (x6), Paracetamol (Biogesic) (x1), Sample 2 (Generic) (x2), Ascorbic Acid (Generic) (x1).', '2026-09-16 23:37:37'),
+(33, 2, 'POS Sale', 'Stock deducted for TXN-000005. Items: Ascorbic Acid (Generic) (x12), Amoxicillin (Generic) (x7), Paracetamol (Biogesic) (x2), Paracetamol (Biogesic) (x2).', '2026-09-16 23:37:45'),
+(34, 1, 'Delete', 'Permanently deleted Batch: b-123.', '2026-09-17 00:29:05'),
+(35, 1, 'Delete', 'Permanently deleted Batch: B-203.', '2026-09-17 00:29:10'),
+(36, 1, 'Delete', 'Permanently deleted Batch: B-101.', '2026-09-17 00:29:14'),
+(37, 1, 'Inventory Entry', 'Registered new item: Smaple (Generic) (Batch: B-200) with 123 units.', '2026-09-17 00:40:57'),
+(38, 2, 'Delete', 'Permanently deleted Batch: B-202.', '2026-09-17 01:03:50'),
+(39, 2, 'POS Sale', 'Stock deducted for TXN-001014. Items: Salbutamol 2mg Tab (Generic) (x8).', '2026-09-17 18:32:09');
 
 -- --------------------------------------------------------
 
@@ -80,17 +101,13 @@ CREATE TABLE `inventory_batches` (
 --
 
 INSERT INTO `inventory_batches` (`batch_id`, `product_id`, `batch_number`, `expiry_date`, `quantity_in_stock`, `selling_price`, `smart_pricing_status`) VALUES
-(1, 1, 'B-101', '2027-05-10', 35, 13.00, 'Inactive'),
-(2, 2, 'B-102', '2027-11-20', 15, 5.00, 'Inactive'),
-(4, 4, 'B-104', '2028-01-12', 200, 9.00, 'Inactive'),
-(7, 7, 'B-107', '2028-11-05', 300, 5.00, 'Inactive'),
-(9, 12, 'B-103', '2026-09-14', 112, 11.00, 'Inactive'),
-(10, 13, '12345', '2026-09-14', 108, 21.00, 'Active'),
-(11, 14, 'b-123', '2026-10-10', 43, 6.73, 'Active'),
-(12, 15, 'B-201', '2027-11-03', 1498, 5.50, 'Inactive'),
-(15, 18, 'B-201', '2027-11-03', 1498, 5.50, 'Inactive'),
-(16, 19, 'B-202', '2026-05-03', 912, 8.00, 'Inactive'),
-(17, 20, 'B-203', '2026-03-20', 3000, 4.25, 'Inactive');
+(2, 2, 'B-102', '2027-11-20', 9, 5.00, 'Inactive'),
+(4, 4, 'B-104', '2028-01-12', 198, 9.00, 'Inactive'),
+(7, 7, 'B-107', '2028-11-05', 285, 5.00, 'Inactive'),
+(9, 12, 'B-103', '2026-09-14', 99, 11.00, 'Inactive'),
+(12, 15, 'B-201', '2027-11-03', 1493, 5.50, 'Inactive'),
+(15, 18, 'B-201', '2027-11-03', 1494, 5.50, 'Inactive'),
+(26, 29, 'B-200', '2026-09-21', 123, 45.00, 'Inactive');
 
 -- --------------------------------------------------------
 
@@ -113,7 +130,6 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`product_id`, `barcode`, `generic_name`, `brand_name`, `category`, `reorder_level`, `drug_type`) VALUES
-(1, 'BAR-101', 'Amoxicillin 500mg Cap', 'Generic', 'Antibiotic', 50, 'OTC'),
 (2, 'BAR-102', 'Paracetamol 500mg Tab', 'Generic', 'Analgesic', 50, 'OTC'),
 (3, 'BAR-103', 'Ascorbic Acid (Vit C)', 'Generic', 'Vitamins', 50, 'Rx'),
 (4, 'BAR-104', 'Ibuprofen 400mg Tab', 'Generic', 'NSAID', 50, 'OTC'),
@@ -122,12 +138,9 @@ INSERT INTO `products` (`product_id`, `barcode`, `generic_name`, `brand_name`, `
 (8, 'BAR-108', 'Losartan 50mg Tab', 'Generic', 'Antihypertensive', 50, 'OTC'),
 (10, 'BAR-110', 'Mefenamic Acid 500mg', 'Generic', 'NSAID', 50, 'OTC'),
 (12, 'BAR-47570', 'Ascorbic Acid', 'Generic', 'Uncategorized', 50, 'OTC'),
-(13, 'BAR-31928', 'Sample 1', 'Generic', 'Uncategorized', 50, 'Rx'),
-(14, 'BAR-37881', 'Sample 2', 'Generic', 'Uncategorized', 50, 'OTC'),
 (15, 'BAR-58048', 'Paracetamol', 'Biogesic', 'Analgesic', 50, 'OTC'),
 (18, 'BAR-42006', 'Paracetamol', 'Biogesic', 'Analgesic', 50, 'OTC'),
-(19, 'BAR-23679', 'Amoxicillin', 'Generic', 'Antibiotic', 50, 'OTC'),
-(20, 'BAR-93328', 'Ascorbic Acid', 'Poten-cee', 'Vitamins', 50, 'OTC');
+(29, 'BAR-25146', 'Smaple', 'Generic', 'Samplecategory', 50, 'OTC');
 
 -- --------------------------------------------------------
 
@@ -167,14 +180,28 @@ CREATE TABLE `sales_items` (
 --
 
 INSERT INTO `sales_items` (`sales_item_id`, `transaction_id`, `batch_id`, `quantity_sold`, `subtotal`) VALUES
-(1, 1, 2, 1, 5.00),
-(5, 3, 1, 1, 13.00),
-(8, 4, 7, 1, 5.00),
-(9, 5, 10, 13, 273.00),
-(10, 6, 9, 10, 110.00),
-(11, 7, 15, 2, 11.00),
-(12, 7, 12, 2, 11.00),
-(13, 8, 10, 2, 42.00);
+(2, 2, 15, 1, 5.50),
+(3, 2, 12, 1, 5.50),
+(5, 3, 7, 7, 35.00),
+(6, 3, 4, 2, 18.00),
+(7, 3, 12, 2, 11.00),
+(8, 4, 2, 6, 30.00),
+(9, 4, 15, 1, 5.50),
+(11, 4, 9, 1, 11.00),
+(12, 5, 9, 12, 132.00),
+(14, 5, 12, 2, 11.00),
+(15, 5, 15, 2, 11.00),
+(16, 1002, 2, 100, 500.00),
+(17, 1002, 4, 100, 900.00),
+(18, 1003, 7, 200, 1000.00),
+(19, 1003, 9, 100, 1100.00),
+(21, 1004, 2, 300, 1500.00),
+(23, 1005, 4, 200, 1800.00),
+(24, 1006, 9, 200, 2200.00),
+(26, 1007, 2, 300, 1500.00),
+(28, 1008, 7, 500, 2500.00),
+(29, 1008, 4, 300, 2700.00),
+(30, 1014, 7, 8, 40.00);
 
 -- --------------------------------------------------------
 
@@ -199,14 +226,24 @@ CREATE TABLE `sales_transactions` (
 --
 
 INSERT INTO `sales_transactions` (`transaction_id`, `user_id`, `transaction_date`, `total_amount`, `total_qty`, `payment_method`, `customer_name`, `prc_license`, `ptr_number`) VALUES
-(1, 2, '2026-07-15 00:00:00', 20.00, 0, 'Cash', NULL, NULL, NULL),
-(2, 3, '2026-07-15 00:00:00', 172.00, 0, 'Cash', NULL, NULL, NULL),
-(3, 2, '2026-07-15 00:00:00', 13.00, 0, 'Cash', NULL, NULL, NULL),
-(4, 3, '2026-07-15 00:00:00', 22.00, 0, 'Cash', NULL, NULL, NULL),
-(5, 2, '2026-09-04 19:48:43', 273.00, 13, 'Cash', 'quaso', '1234567', '123456789'),
-(6, 2, '2026-09-04 19:50:12', 110.00, 10, 'Cash', '', '', ''),
-(7, 2, '2026-09-04 19:50:30', 22.00, 4, 'Cash', '', '', ''),
-(8, 2, '2026-09-04 19:52:27', 42.00, 2, 'Cash', 'asdas', 'asdad', 'dasd');
+(1, 2, '2026-09-16 02:00:31', 40.38, 6, 'Cash', '', '', ''),
+(2, 2, '2026-09-16 23:37:27', 50.00, 5, 'Cash', '', '', ''),
+(3, 2, '2026-09-16 23:37:31', 64.00, 11, 'Cash', '', '', ''),
+(4, 2, '2026-09-16 23:37:37', 59.96, 10, 'Cash', '', '', ''),
+(5, 2, '2026-09-16 23:37:45', 210.00, 23, 'Cash', '', '', ''),
+(1002, 2, '2026-04-15 10:30:00', 1400.00, 200, 'Cash', '', '', ''),
+(1003, 2, '2026-05-10 14:45:00', 2100.00, 300, 'GCash', '', '', ''),
+(1004, 2, '2026-06-14 09:15:00', 2700.00, 450, 'Cash', '', '', ''),
+(1005, 2, '2026-07-05 16:20:00', 3500.00, 600, 'Cash', '', '', ''),
+(1006, 2, '2026-08-08 11:10:00', 4150.00, 350, 'GCash', '', '', ''),
+(1007, 2, '2026-09-02 13:05:00', 2350.00, 500, 'Cash', '', '', ''),
+(1008, 2, '2026-09-14 15:50:00', 5200.00, 800, 'GCash', '', '', ''),
+(1009, 2, '2026-04-15 10:30:00', 1400.00, 200, 'Cash', '', '', ''),
+(1010, 2, '2026-05-10 14:45:00', 2100.00, 300, 'GCash', '', '', ''),
+(1011, 2, '2026-06-14 09:15:00', 2700.00, 450, 'Cash', '', '', ''),
+(1012, 2, '2026-07-05 16:20:00', 3500.00, 600, 'Cash', '', '', ''),
+(1013, 2, '2026-08-08 11:10:00', 4150.00, 350, 'GCash', '', '', ''),
+(1014, 2, '2026-09-17 18:32:08', 40.00, 8, 'Cash', '', '', '');
 
 -- --------------------------------------------------------
 
@@ -235,8 +272,8 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `role_id`, `first_name`, `middle_initial`, `last_name`, `phone_number`, `email`, `username`, `password`, `status`, `last_login`, `last_active`, `sms_alerts_enabled`) VALUES
-(1, 1, 'John Kaye', '', 'Fernandez', '12345678990', 'admin', 'johnkaye123', '123', 'Offline', '2026-09-04 22:27:24', '2026-09-05 01:45:57', 1),
-(2, 2, 'Joseph', '', 'Osena', '09936178148', 'joseph_staff', 'osep123', '123', 'Offline', '2026-09-04 18:52:25', '2026-09-04 22:26:46', 1),
+(1, 1, 'John Kaye', '', 'Fernandez', '09936178148', 'admin', 'johnkaye123', '123', 'Offline', '2026-09-17 18:56:32', '2026-09-17 19:15:12', 1),
+(2, 2, 'Joseph', '', 'Osena', '09936178148', 'joseph_staff', 'osep123', '123', 'Offline', '2026-09-17 19:15:39', '2026-09-18 00:48:17', 0),
 (3, 2, 'Francis', '', 'Mariscal', '', 'francis_staff', 'francis123', 'lyfe2026', 'Offline', NULL, NULL, 1),
 (5, 2, 'quaso', 'D', 'bread', '09123456798', 'name@gmail.com', 'quaso', '123', 'Offline', NULL, NULL, 1);
 
@@ -300,19 +337,19 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
-  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
 
 --
 -- AUTO_INCREMENT for table `inventory_batches`
 --
 ALTER TABLE `inventory_batches`
-  MODIFY `batch_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+  MODIFY `batch_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -324,13 +361,13 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `sales_items`
 --
 ALTER TABLE `sales_items`
-  MODIFY `sales_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `sales_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `sales_transactions`
 --
 ALTER TABLE `sales_transactions`
-  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1015;
 
 --
 -- AUTO_INCREMENT for table `users`

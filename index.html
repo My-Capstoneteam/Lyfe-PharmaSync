@@ -9,6 +9,7 @@
 
 </head>
 <body>
+    <div id="toast-container"></div>
     <div id="auth-screen" class="portal-container">
         
         <!-- LEFT PANEL -->
@@ -241,7 +242,7 @@
         <div class="content-body">
             <!-- USER MODULE UI, FUNCTION, AND STRUCTURE -->
             <div id="users" class="module">
-                <h2 class="header-title">Personnel & Users Module</h2>
+                <h2 class="header-title">User Management</h2>
 
                 <!-- Sliding Tabs Navigation -->
                 <div class="auth-tabs" style="max-width: 450px; margin-bottom: 25px;">
@@ -608,22 +609,27 @@
 
             <!-- AI DEMAND MODULE UI, FUNCTION, AND STRUCTURE -->
             <div id="ai-demand" class="module">
-                <h2 class="header-title">AI Demand Analysis</h2>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 25px;">
+                    <h2 class="header-title" style="border-bottom:none; margin-bottom:0;">AI Demand Analysis</h2>
+                    <!-- The Refresh button has been completely removed -->
+                </div>
+                
                 <div class="grid-cards">
+                    <!-- Card 1: Forecasting -->
                     <div class="card" style="border-top-color: var(--primary); display: flex; flex-direction: column;">
-                        <h3>Real-Time Forecasting</h3>
-                        <p style="margin-top: 15px; font-size: 0.95rem; line-height: 1.6; color: #555;"><strong>Insight:</strong> Cough and cold preparations are moving 42% faster than standard historical averages.<br><br><strong>Action:</strong> Automated procurement drafts created.</p>
-                        <a href="https://doh.gov.ph/bulletin" target="_blank" style="margin-top: auto; padding-top: 15px; color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: bold;">🔗 DOH Epidemic & Disease Surveillance →</a>
+                        <h3 id="demand-title-1">Real-Time Forecasting</h3>
+                        <p style="margin-top: 15px; font-size: 0.95rem; line-height: 1.6; color: #555;"><strong>Insight:</strong> <span id="demand-insight-1">Pending AI analysis...</span><br><br><strong>Action:</strong> <span id="demand-action-1">Pending AI analysis...</span></p>
+                        <a id="demand-link-1" href="#" target="_blank" style="margin-top: auto; padding-top: 15px; color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: bold;">🔗 Generating Link →</a>
                     </div>
+                    <!-- Card 2: Depletion -->
                     <div class="card" style="border-top-color: var(--danger); display: flex; flex-direction: column;">
-                        <h3>Stock Depletion Risk</h3>
-                        <p style="margin-top: 15px; font-size: 0.95rem; line-height: 1.6; color: #555;"><strong>Insight:</strong> Losartan 50mg Tab (B-108) is experiencing sudden high demand and will deplete stock in 3 days.<br><br><strong>Action:</strong> Urgent Restock Recommended.</p>
-                        <a href="https://www.fda.gov.ph/alerts-and-warnings/" target="_blank" style="margin-top: auto; padding-top: 15px; color: var(--danger); text-decoration: none; font-size: 0.85rem; font-weight: bold;">🔗 FDA PH Alerts & Advisories →</a>
+                        <h3 id="demand-title-2">Stock Depletion Risk</h3>
+                        <p style="margin-top: 15px; font-size: 0.95rem; line-height: 1.6; color: #555;"><strong>Insight:</strong> <span id="demand-insight-2">Pending AI analysis...</span><br><br><strong>Action:</strong> <span id="demand-action-2">Pending AI analysis...</span></p>
                     </div>
+                    <!-- Card 3: Trends -->
                     <div class="card" style="border-top-color: var(--secondary); display: flex; flex-direction: column;">
-                        <h3>Emerging Trends</h3>
-                        <p style="margin-top: 15px; font-size: 0.95rem; line-height: 1.6; color: #555;"><strong>Insight:</strong> 15% increase in generic analgesic queries over branded counterparts observed today.<br><br><strong>Action:</strong> Optimize generic shelf allocation.</p>
-                        <a href="https://doh.gov.ph/generics-act-of-1988/" target="_blank" style="margin-top: auto; padding-top: 15px; color: var(--secondary); text-decoration: none; font-size: 0.85rem; font-weight: bold;">🔗 National Generics Awareness Guidelines →</a>
+                        <h3 id="demand-title-3">Emerging Trends</h3>
+                        <p style="margin-top: 15px; font-size: 0.95rem; line-height: 1.6; color: #555;"><strong>Insight:</strong> <span id="demand-insight-3">Pending AI analysis...</span><br><br><strong>Action:</strong> <span id="demand-action-3">Pending AI analysis...</span></p>
                     </div>
                 </div>
                 
@@ -658,58 +664,71 @@
                 <div id="smart-pricing-container" class="grid-cards"></div>
             </div>
 
-            <!-- SALES PREDICTIVE MODULE UI, FUNCTION, AND STRUCTURE -->
+            <!-- SALES & PREDICTIVE ANALYTICS MODULE -->
             <div id="sales-predictive" class="module">
-                <div class="header-title">
-                    <h2>Sales & Predictive Analytics (Owner View)</h2>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h2 class="header-title" style="margin-bottom:0;">Sales & Predictive Analytics (Owner View)</h2>
+                    <button id="btn-refresh-ai" class="btn btn-outline" style="font-size:0.85rem;" onclick="loadAiAnalytics(true)">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Refresh AI Forecast
+                    </button>
                 </div>
-                
-                <div class="grid-cards" style="grid-template-columns: repeat(4, 1fr);">
-                    <div class="card">
-                        <h3>M-o-M Revenue Growth</h3><h2 style="color: var(--secondary);">+14.2%</h2>
+
+                <!-- 4 Dynamic AI Metric Cards -->
+                <div class="grid-cards" style="grid-template-columns: repeat(4, 1fr); margin-top:20px;">
+                    <div class="card" style="border-top-color: var(--secondary);">
+                        <h3 style="color: #666; font-size: 0.85rem;">M-o-M Revenue Growth</h3>
+                        <h2 id="ai-mom-growth" style="margin-top: 5px; color: var(--secondary); font-size:1.8rem;">--</h2>
                     </div>
-                    <div class="card">
-                        <h3>Operating Margin</h3><h2>38.5%</h2>
+                    <div class="card" style="border-top-color: var(--primary);">
+                        <h3 style="color: #666; font-size: 0.85rem;">Operating Margin</h3>
+                        <h2 id="ai-operating-margin" style="margin-top: 5px; color: var(--dark); font-size:1.8rem;">--</h2>
                     </div>
-                    <div class="card">
-                        <h3>Predicted End-of-Month</h3><h2 style="color: var(--primary);">₱ 145,200</h2>
+                    <div class="card" style="border-top-color: #2b6cb0;">
+                        <h3 style="color: #666; font-size: 0.85rem;">Predicted End-of-Month</h3>
+                        <h2 id="ai-predicted-eom" style="margin-top: 5px; color: #2b6cb0; font-size:1.8rem;">₱ --</h2>
                     </div>
-                    <div class="card">
-                        <h3>Top Predicted Category</h3><h2 style="font-size: 1.6rem;">Cough & Cold</h2>
+                    <div class="card" style="border-top-color: var(--dark);">
+                        <h3 style="color: #666; font-size: 0.85rem;">Top Predicted Category</h3>
+                        <h2 id="ai-top-category" style="margin-top: 5px; color: var(--dark); font-size:1.6rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">--</h2>
                     </div>
                 </div>
 
-                <div class="chart-container">
-                    <h3 style="color: var(--dark); margin-bottom: 15px;">Financial Health & Future Capital Allocation</h3>
+                <!-- Chart: Financial Health & Future Capital Allocation -->
+                <div class="chart-container" style="margin-top: 25px;">
+                    <h3 style="color: var(--dark); margin-bottom: 5px;">Financial Health & Future Capital Allocation</h3>
                     <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Overlay of historical/predicted gross revenue vs. the estimated capital needed to meet future AI-driven inventory restock demands.</p>
-                    <div style="position: relative; height: 380px; width: 100%;">
+                    <div style="position: relative; height: 320px; width: 100%;">
                         <canvas id="financialHealthChart"></canvas>
                     </div>
                 </div>
 
-                <div class="chart-container">
+                <!-- 30-Day AI Procurement Forecast -->
+                <div class="chart-container" style="margin-top: 25px;">
                     <h3 style="color: var(--dark); margin-bottom: 15px;">30-Day AI Procurement Forecast</h3>
-                    <p style="font-size: 0.85rem; color: #666; margin-bottom: 15px;">Recommended inventory purchases required to satisfy the upcoming predicted demand cycles.</p>
-                    <table>
-                        <thead>
-                            <tr><th>Predicted Depletion Date</th><th>Category / Item</th><th>Action Required</th><th>Est. Restock Cost</th><th>Expected ROI Potential</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>April 5, 2026</td><td>Losartan 50mg (Maintenance)</td><td><span class="badge badge-danger">Critical Buy</span></td><td>₱ 12,500.00</td><td>+ 42%</td></tr>
-                            <tr><td>April 12, 2026</td><td>Cetirizine 10mg (Allergies)</td><td><span class="badge badge-warning">Monitor / Buy</span></td><td>₱ 8,200.00</td><td>+ 35%</td></tr>
-                            <tr><td>April 25, 2026</td><td>Ascorbic Acid (Vitamins)</td><td><span class="badge badge-success">Standard Cycle</span></td><td>₱ 15,000.00</td><td>+ 20%</td></tr>
-                        </tbody>
-                    </table>
+                    <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 6px;">
+                        <table style="margin-top: 0; min-width: 800px;">
+                            <thead style="background: #f8f9fa;">
+                                <tr>
+                                    <th>Target Restock Date</th>
+                                    <th>Product / Category Description</th>
+                                    <th>Stock Priority Status</th>
+                                    <th>Est. Procurement Capital</th>
+                                    <th>Demand Surge</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ai-procurement-tbody">
+                                <tr><td colspan="5" style="text-align:center; color:#888;">Generating AI forecast...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
+                <!-- Restored Recent Sales Log at bottom -->
                 <div class="chart-container" style="margin-top: 35px; width: 100%;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <div>
-                            <h3 style="color: var(--dark); margin: 0;">Recent Sales Transactions Log</h3>
-                            <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">Real-time ledger of point-of-sale transactions processed by staff.</p>
-                        </div>
+                    <div style="margin-bottom: 15px;">
+                        <h3 style="color: var(--dark); margin: 0;">Recent Sales Transactions Log</h3>
+                        <p style="font-size: 0.85rem; color: #666; margin-top: 5px;">Real-time ledger of point-of-sale transactions processed by staff.</p>
                     </div>
-                    
                     <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: 6px;">
                         <table style="margin-top: 0; min-width: 900px;">
                             <thead style="background: #f8f9fa;">
@@ -722,7 +741,6 @@
                                     <th>Cashier</th>
                                 </tr>
                             </thead>
-                            <!-- Notice the new unique ID here! -->
                             <tbody id="predictive-sales-tbody">
                                 <tr><td colspan="6" style="text-align:center; color:#888;">No transactions processed yet.</td></tr>
                             </tbody>
