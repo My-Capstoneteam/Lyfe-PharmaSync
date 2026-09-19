@@ -2,8 +2,8 @@
     header('Content-Type: application/json');
     require_once 'db_connect.php'; 
 
-    $apiKey = ''; 
-    $url = '' . $apiKey;
+    $apiKey = 'AQ.Ab8RN6IKhyz8PoB3r12H7lSRIBZ2l96EYdtPuB2m5qLLSu80IQ'; 
+    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $apiKey;
 
     $module = $_GET['module'] ?? 'predictive';
     $forceRefresh = isset($_GET['refresh']) && $_GET['refresh'] === 'true';
