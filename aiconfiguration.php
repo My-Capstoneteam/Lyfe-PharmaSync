@@ -3,7 +3,7 @@
     require_once 'db_connect.php'; 
 
     $apiKey = ''; 
-    $url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' . $apiKey;
+    $url = '' . $apiKey;
 
     $module = $_GET['module'] ?? 'predictive';
     $forceRefresh = isset($_GET['refresh']) && $_GET['refresh'] === 'true';
