@@ -20,6 +20,9 @@ let demandChartInst = null;
 let velocityChartInst = null;
 let reorderChartInst = null;
 
+let searchTimeout;
+let originalEditItem = null; // Remembers the state in case of typos
+
 // Dummy variables to prevent UI crash during testing
 let db = [];
 let cart = [];
@@ -938,27 +941,76 @@ async function deleteInventory(batchId) {
 function openInventoryModal(id = null) {
     const isEdit = id !== null;
     document.getElementById('inv-modal-title').innerText = isEdit ? "Update Inventory Record" : "Register New Batch";
-    const item = isEdit ? db.find(i => i.id === id) : {id:'', batch:'', name:'', stock:'', price:'', expiry:'', drug_type: 'OTC', category: ''};
+    
+    // Create an empty fallback object
+    let item = { id:'', product_id:'', batch:'', name:'', generic_name:'', brand_name:'', category:'', dosage:'', stock:'', price:'', expiry:'', drug_type: 'OTC' };
+
+    if (isEdit) {
+        const dbItem = db.find(i => i.id === id);
+        item = { ...dbItem }; // Clone the data
+        
+        // Failsafe: If the PHP cache hasn't updated yet, manually split the name to prevent 'undefined'
+        if (item.generic_name === undefined) {
+            let parts = item.name.split(' (');
+            item.generic_name = parts[0];
+            item.brand_name = parts[1] ? parts[1].replace(')', '') : '';
+            if (item.brand_name === 'Generic') item.brand_name = '';
+        }
+        
+        originalEditItem = { ...item }; // Store it securely for the Reset button
+        document.getElementById('btn-reset-edit').classList.remove('hidden'); // Show reset button
+    } else {
+        originalEditItem = null;
+        document.getElementById('btn-reset-edit').classList.add('hidden'); // Hide reset button
+    }
 
     document.getElementById('inv-id').value = item.id;
+    document.getElementById('inv-product-id').value = item.product_id || ''; 
     document.getElementById('inv-batch').value = item.batch;
     document.getElementById('inv-stock').value = item.stock;
     document.getElementById('inv-price').value = item.price;
     document.getElementById('inv-expiry').value = item.expiry;
     document.getElementById('inv-rx').checked = (item.drug_type === 'Rx');
     
-    document.getElementById('inv-name').value = isEdit ? item.name : '';
-    document.getElementById('inv-category').value = isEdit ? item.category : '';
-    document.getElementById('inv-brand').value = ''; 
+    // Safe mapping to prevent undefined
+    document.getElementById('inv-name').value = item.generic_name || '';
+    document.getElementById('inv-brand').value = item.brand_name || '';
+    document.getElementById('inv-category').value = item.category || '';
+    document.getElementById('inv-dosage').value = item.dosage || ''; 
 
-    // Lock the master product details if editing an existing physical batch
-    document.getElementById('inv-name').disabled = isEdit; 
-    document.getElementById('inv-category').disabled = isEdit;
-    document.getElementById('inv-brand').disabled = isEdit;
+    // Unlock all fields for free typing
+    document.getElementById('inv-name').disabled = false;
+    document.getElementById('inv-category').disabled = false;
+    document.getElementById('inv-dosage').disabled = false;
+    document.getElementById('inv-brand').disabled = false;
 
-    // (The buggy inv-btn-delete logic has been completely removed from here)
+    // Clean up warnings and checkboxes
+    document.getElementById('batch-warning').innerHTML = ''; 
+    const noBatchCheckbox = document.getElementById('inv-no-batch');
+    if (noBatchCheckbox) noBatchCheckbox.checked = false; 
+    
+    const batchInput = document.getElementById('inv-batch');
+    batchInput.readOnly = false; 
+    batchInput.style.backgroundColor = ''; 
 
     document.getElementById('inventory-modal').classList.remove('hidden');
+}
+
+function resetEditForm() {
+    if (!originalEditItem) return;
+    
+    document.getElementById('inv-batch').value = originalEditItem.batch;
+    document.getElementById('inv-stock').value = originalEditItem.stock;
+    document.getElementById('inv-price').value = originalEditItem.price;
+    document.getElementById('inv-expiry').value = originalEditItem.expiry;
+    document.getElementById('inv-rx').checked = (originalEditItem.drug_type === 'Rx');
+    
+    document.getElementById('inv-name').value = originalEditItem.generic_name || '';
+    document.getElementById('inv-brand').value = originalEditItem.brand_name || '';
+    document.getElementById('inv-category').value = originalEditItem.category || '';
+    document.getElementById('inv-dosage').value = originalEditItem.dosage || '';
+    
+    showToast("Fields successfully reset to original details.", "success");
 }
 
 //   =============== WORKING FINE ===========
@@ -972,6 +1024,8 @@ async function saveInventory() {
     data.append('action', id ? 'update_inventory' : 'add_inventory');
     if (id) data.append('batch_id', id);
     
+    data.append('product_id', document.getElementById('inv-product-id').value);
+
     data.append('batch_number', document.getElementById('inv-batch').value);
     data.append('quantity_in_stock', document.getElementById('inv-stock').value);
     data.append('selling_price', document.getElementById('inv-price').value);
@@ -982,6 +1036,7 @@ async function saveInventory() {
     data.append('name', toTitleCase(document.getElementById('inv-name').value.trim()));
     data.append('brand_name', toTitleCase(document.getElementById('inv-brand').value.trim()));
     data.append('category', toTitleCase(document.getElementById('inv-category').value.trim()));
+    data.append('dosage_form', toTitleCase(document.getElementById('inv-dosage').value.trim()));
 
     try {
         const res = await fetch('inventory.php', { method: 'POST', body: data });
@@ -1132,6 +1187,225 @@ function processCSVImport(event) {
         }
     };
     reader.readAsText(file);
+}
+
+// =========================================
+// ===== BARCODE SCANNER FUNCTIONS =========
+// =========================================
+
+function openScannerModal() {
+    document.getElementById('barcode-modal').classList.remove('hidden');
+    const scannerInput = document.getElementById('scanner-input');
+    scannerInput.value = '';
+    
+    // Force focus on the hidden input so the physical scanner types directly into it
+    setTimeout(() => { scannerInput.focus(); }, 100);
+}
+
+async function processBarcode(event) {
+    // Physical barcode scanners automatically fire the 'Enter' key when they finish reading
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        const barcode = document.getElementById('scanner-input').value.trim();
+        if (!barcode) return;
+
+        // 1. Switch to the processing UI
+        closeModal('barcode-modal');
+        document.getElementById('scan-loading-modal').classList.remove('hidden');
+
+        // 2. Query the backend
+        const fd = new FormData();
+        fd.append('action', 'scan_barcode');
+        fd.append('barcode', barcode);
+
+        try {
+            const res = await fetch('inventory.php', { method: 'POST', body: fd });
+            const data = await res.json();
+
+            // Deliberate 1-second delay so the user can see the scanning process animation
+            setTimeout(() => {
+                closeModal('scan-loading-modal');
+
+                if (data.success && data.product) {
+                    // Open the registration modal
+                    openInventoryModal();
+                    
+                    // NEW: Pass the hidden ID so the database knows exactly what product this is!
+                    document.getElementById('inv-product-id').value = data.product.product_id;
+                    
+                    // MAP THE BASE DATA
+                    document.getElementById('inv-batch').value = data.suggested_batch;
+                    document.getElementById('inv-name').value = data.product.generic_name;
+                    document.getElementById('inv-brand').value = data.product.brand_name;
+                    document.getElementById('inv-category').value = data.product.category;
+                    document.getElementById('inv-rx').checked = (data.product.drug_type === 'Rx');
+                    
+                    // MAP THE DOSAGE FORM
+                    if (data.product.dosage_form) {
+                        document.getElementById('inv-dosage').value = data.product.dosage_form;
+                    } else if (data.extracted_dosage) {
+                        document.getElementById('inv-dosage').value = data.extracted_dosage;
+                    } else {
+                        document.getElementById('inv-dosage').value = '';
+                    }
+
+                    // AUTO-FILL PRICE
+                    if (data.suggested_price !== undefined && data.suggested_price !== '') {
+                        document.getElementById('inv-price').value = data.suggested_price;
+                    } else {
+                        document.getElementById('inv-price').value = '';
+                    }
+
+                    // AUTO-FILL EXPIRY
+                    if (data.extracted_expiry) {
+                        document.getElementById('inv-expiry').value = data.extracted_expiry;
+                    } else {
+                        document.getElementById('inv-expiry').value = '';
+                    }
+
+                    // Lock the master details
+                    document.getElementById('inv-name').disabled = true;
+                    document.getElementById('inv-brand').disabled = true;
+                    document.getElementById('inv-category').disabled = true;
+                    document.getElementById('inv-dosage').disabled = true;
+
+                    // NEW: Immediately validate the batch code against the database!
+                    validateBatchData();
+                    
+                    showToast("Product identified! Please verify details and input stock quantity.", "success");
+                } else {
+                    // If barcode doesn't exist, open a blank modal for them to register the new barcode
+                    openInventoryModal();
+                    showToast("Unrecognized barcode. Please register item manually.", "warning");
+                }
+            }, 1000);
+
+        } catch (error) {
+            closeModal('scan-loading-modal');
+            showToast("Connection error during barcode scan.", "error");
+        }
+    }
+}
+
+// =========================================
+// ===== SMART INVENTORY AUTOCOMPLETE ======
+// =========================================
+
+async function searchMasterProducts() {
+    clearTimeout(searchTimeout);
+    const query = document.getElementById('inv-name').value.trim();
+    const dropdown = document.getElementById('autocomplete-results');
+    
+    // Unlock fields if they start typing a brand new item
+    document.getElementById('inv-product-id').value = '';
+    document.getElementById('inv-brand').disabled = false;
+    document.getElementById('inv-category').disabled = false;
+    document.getElementById('inv-dosage').disabled = false;
+
+    if (query.length < 2) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+
+    searchTimeout = setTimeout(async () => {
+        const fd = new FormData();
+        fd.append('action', 'search_product');
+        fd.append('query', query);
+
+        const res = await fetch('inventory.php', { method: 'POST', body: fd });
+        const data = await res.json();
+
+        if (data.success && data.results.length > 0) {
+            dropdown.innerHTML = data.results.map(p => `
+                <div class="autocomplete-item" onclick='selectMasterProduct(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+                    <strong>${p.generic_name}</strong> <span style="font-size:0.8rem; color:#666;">(${p.brand_name}) - ${p.dosage_form}</span>
+                </div>
+            `).join('');
+            dropdown.classList.remove('hidden');
+        } else {
+            dropdown.innerHTML = `<div style="padding: 10px; color: #666; font-size: 0.85rem; font-style: italic;">No matches found. This will be registered as a new product.</div>`;
+            dropdown.classList.remove('hidden');
+        }
+    }, 300);
+}
+
+function selectMasterProduct(product) {
+    document.getElementById('inv-product-id').value = product.product_id;
+    document.getElementById('inv-name').value = product.generic_name;
+    document.getElementById('inv-brand').value = product.brand_name;
+    document.getElementById('inv-category').value = product.category;
+    document.getElementById('inv-dosage').value = product.dosage_form;
+    document.getElementById('inv-rx').checked = (product.drug_type === 'Rx');
+
+    document.getElementById('autocomplete-results').classList.add('hidden');
+
+    // Lock the master fields since we selected an existing DB product
+    document.getElementById('inv-brand').disabled = true;
+    document.getElementById('inv-category').disabled = true;
+    document.getElementById('inv-dosage').disabled = true;
+    
+    validateBatchData(); // Run check in case batch was already typed
+}
+
+// Hide dropdown if clicked outside
+document.addEventListener('click', function(e) {
+    if (!document.getElementById('inv-name').contains(e.target)) {
+        const dropdown = document.getElementById('autocomplete-results');
+        if(dropdown) dropdown.classList.add('hidden');
+    }
+});
+
+// =========================================
+// ===== BATCH VALIDATION & FALLBACK =======
+// =========================================
+
+async function validateBatchData() {
+    const prodId = document.getElementById('inv-product-id').value;
+    const batchNo = document.getElementById('inv-batch').value.trim();
+    const warningLabel = document.getElementById('batch-warning');
+
+    if (!prodId || !batchNo) {
+        warningLabel.innerText = '';
+        return;
+    }
+
+    const fd = new FormData();
+    fd.append('action', 'validate_batch');
+    fd.append('product_id', prodId);
+    fd.append('batch_number', batchNo);
+
+    const res = await fetch('inventory.php', { method: 'POST', body: fd });
+    const data = await res.json();
+
+    if (data.exists) {
+        warningLabel.style.color = '#17a2b8';
+        warningLabel.innerHTML = `<i class="fa-solid fa-code-merge"></i> Lot exists! Adding quantity will merge stock with the existing ${data.data.quantity_in_stock} units.`;
+        document.getElementById('inv-expiry').value = data.data.expiry_date;
+        document.getElementById('inv-price').value = parseFloat(data.data.selling_price).toFixed(2);
+    } else {
+        warningLabel.style.color = '#28a745';
+        warningLabel.innerHTML = `<i class="fa-solid fa-check"></i> Clean Lot Code. This will register as a new batch.`;
+    }
+}
+
+function generateInternalBatch() {
+    const isChecked = document.getElementById('inv-no-batch').checked;
+    const batchInput = document.getElementById('inv-batch');
+    
+    if (isChecked) {
+        const today = new Date();
+        const dateStr = today.getFullYear().toString() + (today.getMonth()+1).toString().padStart(2, '0') + today.getDate().toString().padStart(2, '0');
+        const randomStr = Math.floor(100 + Math.random() * 900);
+        batchInput.value = `INT-${dateStr}-${randomStr}`;
+        batchInput.readOnly = true;
+        batchInput.style.backgroundColor = '#f1f3f5';
+        validateBatchData();
+    } else {
+        batchInput.value = '';
+        batchInput.readOnly = false;
+        batchInput.style.backgroundColor = '';
+        document.getElementById('batch-warning').innerText = '';
+    }
 }
 
 // =========================================

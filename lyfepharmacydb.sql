@@ -3,7 +3,11 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
+<<<<<<< HEAD
 -- Generation Time: Sep 18, 2026 at 06:40 AM
+=======
+-- Generation Time: Sep 15, 2026 at 09:29 PM
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -68,6 +72,7 @@ INSERT INTO `audit_logs` (`log_id`, `user_id`, `action_type`, `description`, `ti
 (26, 1, 'Delete', 'Permanently deleted Batch: TXN-000002.', '2026-09-15 23:03:54'),
 (27, 1, 'Delete', 'Permanently deleted Batch: TXN-000003.', '2026-09-15 23:03:57'),
 (28, 1, 'Delete', 'Permanently deleted Batch: TXN-000004.', '2026-09-15 23:03:59'),
+<<<<<<< HEAD
 (29, 2, 'POS Sale', 'Stock deducted for TXN-000001. Items: Sample 2 (Generic) (x6).', '2026-09-16 02:00:31'),
 (30, 2, 'POS Sale', 'Stock deducted for TXN-000002. Items: Paracetamol (Biogesic) (x1), Paracetamol (Biogesic) (x1), Amoxicillin 500mg Cap (Generic) (x3).', '2026-09-16 23:37:27'),
 (31, 2, 'POS Sale', 'Stock deducted for TXN-000003. Items: Salbutamol 2mg Tab (Generic) (x7), Ibuprofen 400mg Tab (Generic) (x2), Paracetamol (Biogesic) (x2).', '2026-09-16 23:37:31'),
@@ -79,6 +84,9 @@ INSERT INTO `audit_logs` (`log_id`, `user_id`, `action_type`, `description`, `ti
 (37, 1, 'Inventory Entry', 'Registered new item: Smaple (Generic) (Batch: B-200) with 123 units.', '2026-09-17 00:40:57'),
 (38, 2, 'Delete', 'Permanently deleted Batch: B-202.', '2026-09-17 01:03:50'),
 (39, 2, 'POS Sale', 'Stock deducted for TXN-001014. Items: Salbutamol 2mg Tab (Generic) (x8).', '2026-09-17 18:32:09');
+=======
+(29, 2, 'POS Sale', 'Stock deducted for TXN-000001. Items: Sample 2 (Generic) (x6).', '2026-09-16 02:00:31');
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 
 -- --------------------------------------------------------
 
@@ -101,6 +109,7 @@ CREATE TABLE `inventory_batches` (
 --
 
 INSERT INTO `inventory_batches` (`batch_id`, `product_id`, `batch_number`, `expiry_date`, `quantity_in_stock`, `selling_price`, `smart_pricing_status`) VALUES
+<<<<<<< HEAD
 (2, 2, 'B-102', '2027-11-20', 9, 5.00, 'Inactive'),
 (4, 4, 'B-104', '2028-01-12', 198, 9.00, 'Inactive'),
 (7, 7, 'B-107', '2028-11-05', 285, 5.00, 'Inactive'),
@@ -108,6 +117,18 @@ INSERT INTO `inventory_batches` (`batch_id`, `product_id`, `batch_number`, `expi
 (12, 15, 'B-201', '2027-11-03', 1493, 5.50, 'Inactive'),
 (15, 18, 'B-201', '2027-11-03', 1494, 5.50, 'Inactive'),
 (26, 29, 'B-200', '2026-09-21', 123, 45.00, 'Inactive');
+=======
+(1, 1, 'B-101', '2027-05-10', 35, 13.00, 'Inactive'),
+(2, 2, 'B-102', '2027-11-20', 15, 5.00, 'Inactive'),
+(4, 4, 'B-104', '2028-01-12', 200, 9.00, 'Inactive'),
+(7, 7, 'B-107', '2028-11-05', 300, 5.00, 'Inactive'),
+(9, 12, 'B-103', '2026-09-14', 112, 11.00, 'Inactive'),
+(11, 14, 'b-123', '2026-10-10', 37, 6.73, 'Active'),
+(12, 15, 'B-201', '2027-11-03', 1498, 5.50, 'Inactive'),
+(15, 18, 'B-201', '2027-11-03', 1498, 5.50, 'Inactive'),
+(16, 19, 'B-202', '2026-05-03', 912, 8.00, 'Inactive'),
+(17, 20, 'B-203', '2026-03-20', 3000, 4.25, 'Inactive');
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 
 -- --------------------------------------------------------
 
@@ -138,6 +159,10 @@ INSERT INTO `products` (`product_id`, `barcode`, `generic_name`, `brand_name`, `
 (8, 'BAR-108', 'Losartan 50mg Tab', 'Generic', 'Antihypertensive', 50, 'OTC'),
 (10, 'BAR-110', 'Mefenamic Acid 500mg', 'Generic', 'NSAID', 50, 'OTC'),
 (12, 'BAR-47570', 'Ascorbic Acid', 'Generic', 'Uncategorized', 50, 'OTC'),
+<<<<<<< HEAD
+=======
+(14, 'BAR-37881', 'Sample 2', 'Generic', 'Uncategorized', 50, 'OTC'),
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 (15, 'BAR-58048', 'Paracetamol', 'Biogesic', 'Analgesic', 50, 'OTC'),
 (18, 'BAR-42006', 'Paracetamol', 'Biogesic', 'Analgesic', 50, 'OTC'),
 (29, 'BAR-25146', 'Smaple', 'Generic', 'Samplecategory', 50, 'OTC');
@@ -180,6 +205,7 @@ CREATE TABLE `sales_items` (
 --
 
 INSERT INTO `sales_items` (`sales_item_id`, `transaction_id`, `batch_id`, `quantity_sold`, `subtotal`) VALUES
+<<<<<<< HEAD
 (2, 2, 15, 1, 5.50),
 (3, 2, 12, 1, 5.50),
 (5, 3, 7, 7, 35.00),
@@ -202,6 +228,9 @@ INSERT INTO `sales_items` (`sales_item_id`, `transaction_id`, `batch_id`, `quant
 (28, 1008, 7, 500, 2500.00),
 (29, 1008, 4, 300, 2700.00),
 (30, 1014, 7, 8, 40.00);
+=======
+(1, 1, 11, 6, 40.38);
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 
 -- --------------------------------------------------------
 
@@ -226,6 +255,7 @@ CREATE TABLE `sales_transactions` (
 --
 
 INSERT INTO `sales_transactions` (`transaction_id`, `user_id`, `transaction_date`, `total_amount`, `total_qty`, `payment_method`, `customer_name`, `prc_license`, `ptr_number`) VALUES
+<<<<<<< HEAD
 (1, 2, '2026-09-16 02:00:31', 40.38, 6, 'Cash', '', '', ''),
 (2, 2, '2026-09-16 23:37:27', 50.00, 5, 'Cash', '', '', ''),
 (3, 2, '2026-09-16 23:37:31', 64.00, 11, 'Cash', '', '', ''),
@@ -244,6 +274,9 @@ INSERT INTO `sales_transactions` (`transaction_id`, `user_id`, `transaction_date
 (1012, 2, '2026-07-05 16:20:00', 3500.00, 600, 'Cash', '', '', ''),
 (1013, 2, '2026-08-08 11:10:00', 4150.00, 350, 'GCash', '', '', ''),
 (1014, 2, '2026-09-17 18:32:08', 40.00, 8, 'Cash', '', '', '');
+=======
+(1, 2, '2026-09-16 02:00:31', 40.38, 6, 'Cash', '', '', '');
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 
 -- --------------------------------------------------------
 
@@ -272,8 +305,13 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`user_id`, `role_id`, `first_name`, `middle_initial`, `last_name`, `phone_number`, `email`, `username`, `password`, `status`, `last_login`, `last_active`, `sms_alerts_enabled`) VALUES
+<<<<<<< HEAD
 (1, 1, 'John Kaye', '', 'Fernandez', '09936178148', 'admin', 'johnkaye123', '123', 'Offline', '2026-09-17 18:56:32', '2026-09-17 19:15:12', 1),
 (2, 2, 'Joseph', '', 'Osena', '09936178148', 'joseph_staff', 'osep123', '123', 'Offline', '2026-09-17 19:15:39', '2026-09-18 00:48:17', 0),
+=======
+(1, 1, 'John Kaye', '', 'Fernandez', '12345678990', 'admin', 'johnkaye123', '123', 'Offline', '2026-09-16 03:21:43', '2026-09-16 03:26:14', 1),
+(2, 2, 'Joseph', '', 'Osena', '09936178148', 'joseph_staff', 'osep123', '123', 'Offline', '2026-09-16 02:01:38', '2026-09-16 02:01:38', 1),
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 (3, 2, 'Francis', '', 'Mariscal', '', 'francis_staff', 'francis123', 'lyfe2026', 'Offline', NULL, NULL, 1),
 (5, 2, 'quaso', 'D', 'bread', '09123456798', 'name@gmail.com', 'quaso', '123', 'Offline', NULL, NULL, 1);
 
@@ -337,19 +375,31 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `audit_logs`
 --
 ALTER TABLE `audit_logs`
+<<<<<<< HEAD
   MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+=======
+  MODIFY `log_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 
 --
 -- AUTO_INCREMENT for table `inventory_batches`
 --
 ALTER TABLE `inventory_batches`
+<<<<<<< HEAD
   MODIFY `batch_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+=======
+  MODIFY `batch_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 
 --
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
+<<<<<<< HEAD
   MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+=======
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -361,13 +411,21 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `sales_items`
 --
 ALTER TABLE `sales_items`
+<<<<<<< HEAD
   MODIFY `sales_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+=======
+  MODIFY `sales_item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 
 --
 -- AUTO_INCREMENT for table `sales_transactions`
 --
 ALTER TABLE `sales_transactions`
+<<<<<<< HEAD
   MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1015;
+=======
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+>>>>>>> ad70bc0eee088ebcb0a38e0044fe7885ccfc8f95
 
 --
 -- AUTO_INCREMENT for table `users`

@@ -1,0 +1,132 @@
+{
+    "insight_1": {
+        "insight": "Seasonal changes increase demand for Analgesic.",
+        "action": "Maintain shelf stock.",
+        "link_text": "DOH Portal",
+        "link_url": "https:\/\/doh.gov.ph"
+    },
+    "insight_2": {
+        "insight": "Paracetamol 500mg Tab (Batch B-102 - 9 units left) is flagged for depletion.",
+        "action": "Prepare replenishment order."
+    },
+    "insight_3": {
+        "insight": "Patients demonstrate stronger preference for generic equivalents.",
+        "action": "Highlight verified generic options."
+    },
+    "projected_demand": [
+        965,
+        965,
+        813,
+        6,
+        6,
+        6
+    ],
+    "demand_chart": {
+        "categories": [
+            "Analgesic",
+            "Bronchodilator",
+            "NSAID",
+            "Vitamins",
+            "Antihistamine",
+            "Antihypertensive"
+        ],
+        "units_sold": [
+            715,
+            715,
+            602,
+            0,
+            0,
+            0
+        ],
+        "projected_demand": [
+            965,
+            965,
+            813,
+            6,
+            6,
+            6
+        ]
+    },
+    "velocity_chart": {
+        "days": [
+            "Sep 13",
+            "Sep 14",
+            "Sep 15",
+            "Sep 16",
+            "Sep 17",
+            "Sep 18",
+            "Today"
+        ],
+        "datasets": [
+            {
+                "label": "NSAID",
+                "data": [
+                    0,
+                    300,
+                    0,
+                    2,
+                    0,
+                    0,
+                    0
+                ],
+                "borderColor": "#dc3545",
+                "backgroundColor": "transparent",
+                "tension": 0.4,
+                "borderWidth": 2
+            },
+            {
+                "label": "Bronchodilator",
+                "data": [
+                    0,
+                    500,
+                    0,
+                    7,
+                    8,
+                    0,
+                    0
+                ],
+                "borderColor": "#20c997",
+                "backgroundColor": "transparent",
+                "tension": 0.4,
+                "borderWidth": 2
+            },
+            {
+                "label": "Analgesic",
+                "data": [
+                    0,
+                    0,
+                    0,
+                    15,
+                    0,
+                    0,
+                    0
+                ],
+                "borderColor": "#0056b3",
+                "backgroundColor": "transparent",
+                "tension": 0.4,
+                "borderWidth": 2
+            },
+            {
+                "label": "Uncategorized",
+                "data": [
+                    0,
+                    0,
+                    0,
+                    13,
+                    0,
+                    0,
+                    0
+                ],
+                "borderColor": "#ffc107",
+                "backgroundColor": "transparent",
+                "tension": 0.4,
+                "borderWidth": 2
+            }
+        ]
+    },
+    "reorder_chart": {
+        "urgent": 1,
+        "monitor": 0,
+        "healthy": 7
+    }
+}
